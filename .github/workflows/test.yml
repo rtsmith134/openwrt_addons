@@ -1,0 +1,32 @@
+name: Test_build
+
+on:
+  pull_request:
+
+jobs:
+  Test_build:
+    name: Test-${{matrix.arch}}-${{matrix.release}}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release:
+          - 23.05.6
+        arch:
+          - arm_cortex-a15_neon-vfpv4
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add test directories
+        run: mkdir artifacts feed logs
+
+      - name: Build
+        uses: openwrt/gh-action-sdk@main
+        env:
+          ARCH: ${{ matrix.arch }}
+          BUILD_LOG: ${{ github.workspace }}/logs
+          ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
+          FEED_DIR: ${{ github.workspace }}/feed
+          PACKAGES: vim openvpn-xor
+

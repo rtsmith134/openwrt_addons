@@ -1,0 +1,61 @@
+name: AutoBuild_Short
+
+on:
+  workflow_dispatch:
+    inputs:
+      PACKAGES:
+        required: true
+        type: string
+      OP_VERSION:
+        required: true
+        default: '23.05.5'
+        type: string
+      BOARD:
+        required: true
+        default: 'x86'
+        type: string
+      SUBTARGET:
+        required: true
+        default: '64'
+        type: string
+
+env:
+  DELETE_OLD_WORKFLOW: true
+  WORKFLOW_RETAIN_DAYS: 14
+  KEEP_RUNS_RECORD: 100
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: false
+
+jobs:
+  compile_short:
+    permissions:
+      contents: write  # To push a branch
+    strategy:
+      matrix:
+        version:
+          - '23.05.6'
+        arch_packages:
+          - arm_cortex-a15_neon-vfpv4
+        include:
+          - usign_id: ${{ vars.USIGN_ID }}
+          - gpg_id: ${{ vars.GPG_ID }}
+          - arch_packages: arm_cortex-a15_neon-vfpv4
+            target: ['ipq806x', 'generic']
+            profile: linksys-ea8500  # for imagebuilder
+    uses: ./.github/workflows/compile_short.yml
+    with:
+      compiles: ${{ inputs.compile_packages }}
+      GHPAGES_PATH: 'releases'
+      OP_VERSION: ${{ matrix.version }}
+      ARCH: ${{ matrix.arch_packages }}
+      BOARD: ${{ matrix.target[0] }}
+      SUBTARGET: ${{ matrix.target[1] }}
+      MODEL: ${{ matrix.profile }}
+      USIGN_ID: ${{ matrix.usign_id }}
+      GPG_ID: ${{ matrix.gpg_id }}
+    secrets: inherit
+
