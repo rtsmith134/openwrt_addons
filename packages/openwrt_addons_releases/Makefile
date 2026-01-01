@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: MIT
+#
+# Copyright (C) 2023-2025 openwrt_addons
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=openwrt_addons_releases
+PKG_VERSION:=1.0
+PKG_RELEASE:=1
+
+PKG_MAINTAINER:=Richard Smith <rtsmith134@gmail.com>
+PKG_LICENSE:=MIT
+PKG_LICENSE_FILES:=License
+
+PKG_BUILD_PARALLEL:=1
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/$(PKG_NAME)
+  SECTION:=base
+  CATEGORY:=Base system
+  DEPENDS:=+openwrt_addons_keyring +opkg
+  TITLE:=Installer for openwrt_addons_releases
+  PKGARCH:=all
+endef
+
+Build/Compile=
+
+define Package/$(PKG_NAME)/install
+	:
+endef
+
+define Package/$(PKG_NAME)/postinst
+#!/bin/sh
+export REVISION VERSION_NUMBER ARCH_PACKAGES
+if [ -n "$$IPKG_INSTROOT" ]; then
+	# building
+	eval "$$(grep CONFIG_VERSION_NUMBER "$$TOPDIR/.config")"
+	eval "$$(grep CONFIG_VERSION_REPO "$$TOPDIR/.config")"
+	eval "$$(grep CONFIG_TARGET_ARCH_PACKAGES "$$TOPDIR/.config")"
+	REVISION=$$($$TOPDIR/scripts/getver.sh)
+	REVISION=$${REVISION:1:5}
+	if [ -n "$$CONFIG_VERSION_REPO" ]; then
+		VERSION_NUMBER=$${CONFIG_VERSION_REPO##*/}
+	else
+		VERSION_NUMBER=$${CONFIG_VERSION_NUMBER:-SNAPSHOT}
+	fi
+	ARCH_PACKAGES=$$CONFIG_TARGET_ARCH_PACKAGES
+else
+	# system
+	eval "$$(grep VERSION /etc/os-release)"
+	eval "$$(grep BUILD_ID /etc/os-release)"
+	eval "$$(grep OPENWRT_ARCH /etc/os-release)"
+	REVISION=$${BUILD_ID:1:5}
+	VERSION_NUMBER=$$VERSION
+	ARCH_PACKAGES=$$OPENWRT_ARCH
+fi
+if [ "$$VERSION_NUMBER" = "SNAPSHOT" ]; then
+	BRANCH="24.10"
+	[ "$$REVISION" -lt 28158 ] && BRANCH="23.05"
+	[ "$$REVISION" -lt 23069 ] && BRANCH="22.03"
+	[ "$$REVISION" -lt 19302 ] && BRANCH="21.02"
+	# https://archive.openwrt.org/releases/**/version.buildinfo
+	# r28158-d276b4c91a    24.10.0-rc1
+	# r23069-e2701e0f33    23.05.0-rc1
+	# r19302-df622768da    22.03.0-rc1
+	# r16122-c2139eef27    21.02.0-rc2
+else
+	BRANCH=$$(echo $$VERSION_NUMBER | awk -F '.' -v OFS='.' '{print $$1,$$2}')
+fi
+# BASE_URL="https://fantastic-packages.github.io/releases"
+if ! grep -q fantastic_packages_ "$$IPKG_INSTROOT/etc/opkg/customfeeds.conf"; then
+	BASE_URL="https://github.com/rtsmith134/openwrt_addons_releases"
+	BASE_URL="$$BASE_URL/$$BRANCH/packages/$$ARCH_PACKAGES"
+	cat <<- EOF >> "$$IPKG_INSTROOT/etc/opkg/customfeeds.conf"
+	src/gz openwrt_addons_packages $$BASE_URL/packages
+	EOF
+fi
+exit 0
+endef
+
+define Package/$(PKG_NAME)/prerm
+#!/bin/sh
+sed -i "/openwrt_addons_/d" "$$IPKG_INSTROOT/etc/opkg/customfeeds.conf"
+exit 0
+endef
+
+$(eval $(call BuildPackage,$(PKG_NAME)))

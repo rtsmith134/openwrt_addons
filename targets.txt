@@ -1,0 +1,2 @@
+'ipq806x/generic'         arm_cortex-a15_neon-vfpv4
+'qualcommax/ipq807x'      aarch64_cortex-a53
