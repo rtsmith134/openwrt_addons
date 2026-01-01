@@ -21,7 +21,7 @@ PKG_HASH:=2bbd0026469902037ee6499b68283d5ab36c74e36cae3112082cfdf6c77a0c57
 #rtsmith134. We probably want to add varient.
 # you must have openvpn-pkg_version at the end or else  tar tryes to unpack it 
 # to the openvpn-xor-2.6.14 dirctory
-PKG_BUILD_DIR:=$(BUILD_DIR)/openvpn-xor/openvpn-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(BUILD_DIR)/openvpn-xor-$(BUILD_VARIANT)/openvpn-$(PKG_VERSION)
 
 PKG_MAINTAINER:=Magnus Kroken <mkroken@gmail.com>
 
