@@ -112,3 +112,6 @@
 [submodule "packages/openwrt-einat-ebpf"]
 	path = packages/openwrt-einat-ebpf
 	url = https://github.com/muink/openwrt-einat-ebpf.git
+[submodule "luci/luci-app-interfaces-statisticsr"]
+	path = luci/luci-app-interfaces-statisticsr
+	url = https://github.com/gSpotx2f/luci-app-interfaces-statistics.git
