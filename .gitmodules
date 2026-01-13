@@ -115,3 +115,9 @@
 [submodule "luci/luci-app-interfaces-statisticsr"]
 	path = luci/luci-app-interfaces-statisticsr
 	url = https://github.com/gSpotx2f/luci-app-interfaces-statistics.git
+[submodule "packages/openwrt-smartdns"]
+	path = packages/openwrt-smartdns
+	url = https://github.com/pymumu/openwrt-smartdns.git
+[submodule "luci/luci-app-smartdns"]
+	path = luci/luci-app-smartdns
+	url = https://github.com/pymumu/luci-app-smartdns.git
